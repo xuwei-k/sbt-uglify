@@ -1,0 +1,6 @@
+# Uglify files.
+
+> web-stage
+$ exists target/web/stage/javascripts/a.min.js
+
+
