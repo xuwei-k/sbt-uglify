@@ -11,7 +11,7 @@ scalaVersion := "2.10.4"
 scalacOptions += "-feature"
 
 libraryDependencies ++= Seq(
-  "org.webjars" % "uglifyjs" % "2.4.13-SNAPSHOT"
+  "org.webjars" % "uglifyjs" % "2.4.13"
 )
 
 resolvers ++= Seq(
