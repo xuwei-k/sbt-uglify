@@ -8,6 +8,6 @@ $ exists target/web/stage/javascripts/main.min.js.map
 $ exists target/web/stage/javascripts/x.coffee
 $ exists target/web/stage/javascripts/x.js
 $ exists target/web/stage/javascripts/x.js.map
-# > checkMapFileContents
+> checkMapFileContents
 
 
