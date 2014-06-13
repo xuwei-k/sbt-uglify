@@ -87,6 +87,8 @@ object SbtUglify extends AutoPlugin {
         buildDir.value
       )
 
+      val buildMappings = optimizerMappings.map(o => buildDir.value / o._2)
+
       val cacheDirectory = streams.value.cacheDirectory / uglify.key.label
       val runUpdate = FileFunction.cached(cacheDirectory, FilesInfo.hash) {
         inputFiles =>
@@ -156,7 +158,7 @@ object SbtUglify extends AutoPlugin {
           buildDir.value.***.get.filter(!_.isDirectory).toSet
       }
 
-      val optimizedMappings = runUpdate(buildDir.value.***.get.filter(!_.isDirectory).toSet).pair(relativeTo(buildDir.value))
+      val optimizedMappings = runUpdate(buildMappings.toSet).pair(relativeTo(buildDir.value))
       (mappings.toSet -- optimizerMappings ++ optimizedMappings).toSeq
   }
 
