@@ -21,7 +21,13 @@ pipelineStages := Seq(uglify)
 
 A standard build profile for the Uglify optimizer is provided which will mangle variables for obfuscation and 
 compress. Source maps are also generated. Also by default, everything is minified into a "main.min.js" file either
-in your `js` or `javascripts` folder, or in the root of your assets if neither of those exist.
+in your `js` or `javascripts` folder, or in the root of your assets if neither of those exist. If you wish to limit what is uglified then you can use filters e.g.:
+
+```scala
+includeFilter in uglify := GlobFilter("myjs/*.js"),
+```
+
+...where the above will include only those files under the `myjs` folder. The sbt `excludeFilter` is also available to the `uglify` scope.
 
 You are able to use and/or customize settings already made, and add your own. Here are a list of relevant settings and
 their meanings (please refer to the [UglifyJs documentation](http://lisperator.net/uglifyjs) for details on the 
