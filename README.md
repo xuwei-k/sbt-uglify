@@ -20,14 +20,15 @@ pipelineStages := Seq(uglify)
 ```
 
 A standard build profile for the Uglify optimizer is provided which will mangle variables for obfuscation and 
-compress. Source maps are also generated. Also by default, everything is minified into a "main.min.js" file either
-in your `js` or `javascripts` folder, or in the root of your assets if neither of those exist. If you wish to limit what is uglified then you can use filters e.g.:
+compress. Each input `.js` file found in your assets folders will have a corresponding `.min.js` file and source maps are also generated. 
+If you wish to limit or extend what is uglified then you can use filters e.g.:
 
 ```scala
 includeFilter in uglify := GlobFilter("myjs/*.js"),
 ```
 
-...where the above will include only those files under the `myjs` folder. The sbt `excludeFilter` is also available to the `uglify` scope.
+...where the above will include only those files under the `myjs` folder. The sbt `excludeFilter` is also available 
+to the `uglify` scope and defaults to excluding the public folder and extracted Webjars.
 
 You are able to use and/or customize settings already made, and add your own. Here are a list of relevant settings and
 their meanings (please refer to the [UglifyJs documentation](http://lisperator.net/uglifyjs) for details on the 
@@ -42,17 +43,9 @@ define                  | Define globals. Defaults to None.
 enclose                 | Enclose in one big function. Defaults to false.
 mangle                  | Enables name mangling. The default is to mangle.
 mangleOptions           | Options for mangling such as sort, topLevel etc.
-output                  | The target relative url path for Uglify output. Defaults to ./main.min.js".
 preamble                | Any preamble to include at the start of the output. Defaults to None.
 reserved                | Reserved names to exclude from mangling.
 sourceMap               | Enables source maps. The default is that source maps are enabled (true).
-
-Supposing that your application does not have a `main.js` and consequently `main.min.js` makes no sense. Suppose
-that instead, it should be `js/app.min.js` given the existence of `js/app.js`:
-
-```scala
-UglifyKeys.output := "js/app.min.js"
-```
 
 The plugin is built on top of [JavaScript Engine](https://github.com/typesafehub/js-engine) which supports different JavaScript runtimes.
 
