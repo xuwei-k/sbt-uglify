@@ -46,6 +46,7 @@ mangleOptions           | Options for mangling such as sort, topLevel etc.
 preamble                | Any preamble to include at the start of the output. Defaults to None.
 reserved                | Reserved names to exclude from mangling.
 sourceMap               | Enables source maps. The default is that source maps are enabled (true).
+uglifyOps               | A function defining how to combine input files into output files, taking the list of included inputs and returning the list of output files that should be generated along with their sources. Defaults to a one-to-one mapping, uglifying each file.js to file.min.js separately.")
 
 The plugin is built on top of [JavaScript Engine](https://github.com/typesafehub/js-engine) which supports different JavaScript runtimes.
 
