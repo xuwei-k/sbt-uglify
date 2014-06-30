@@ -2,16 +2,18 @@ package com.typesafe.sbt.uglify
 
 import sbt._
 import sbt.Keys._
-import com.typesafe.sbt.web.{incremental, SbtWeb}
+import com.typesafe.sbt.web.{incremental, SbtWeb, PathMapping}
 import com.typesafe.sbt.web.pipeline.Pipeline
 import com.typesafe.sbt.jse.{SbtJsEngine, SbtJsTask}
 import com.typesafe.sbt.web.incremental._
 import sbt.Task
-import com.typesafe.sbt.web.incremental.OpSuccess
 
 object Import {
 
   val uglify = TaskKey[Pipeline.Stage]("uglify", "Perform Uglify optimization on the asset pipeline.")
+
+  /** A list of input files mapping to a single output file. */
+  type UglifyOpGrouping = (Seq[PathMapping], String)
 
   object UglifyKeys {
     val appDir = SettingKey[File]("uglify-build-dir", "Where uglifyjs will read from. It likes to have all the files in one place.")
@@ -26,6 +28,7 @@ object Import {
     val preamble = SettingKey[Option[String]]("uglify-preamble", "Any preamble to include at the start of the output. Defaults to None")
     val reserved = SettingKey[Seq[String]]("uglify-reserved", "Reserved names to exclude from mangling.")
     val sourceMap = SettingKey[Boolean]("uglify-source-map", "Enables source maps. The default is that source maps are enabled (true).")
+    val uglifyOps = SettingKey[Seq[PathMapping] => Seq[UglifyOpGrouping]]("uglify-ops", "A function defining how to combine input files into output files, taking the list of included inputs and returning the list of output files that should be generated along with their sources. Defaults to a one-to-one mapping, uglifying each file.js to file.min.js separately.")
   }
 
 }
@@ -51,6 +54,7 @@ object SbtUglify extends AutoPlugin {
     comments := None,
     compress := true,
     compressOptions := Nil,
+    uglifyOps := uglifySingle,
     define := None,
     enclose := false,
     excludeFilter in uglify := new SimpleFileFilter({
@@ -68,6 +72,15 @@ object SbtUglify extends AutoPlugin {
     uglify := runOptimizer.dependsOn(webJarsNodeModules in Plugin).value
   )
 
+  private def dotMin(file : String) : String = {
+    val exti = file.lastIndexOf('.')
+    val (pfx, ext) = if (exti == -1) (file, "")
+      else file.splitAt(exti)
+    pfx + ".min" + ext
+  }
+
+  private def uglifySingle(mappings : Seq[PathMapping]) : Seq[UglifyOpGrouping] =
+    mappings.map(fp => (Seq(fp), dotMin(fp._2)))
 
   private def runOptimizer: Def.Initialize[Task[Pipeline.Stage]] = Def.task {
     mappings =>
@@ -82,7 +95,7 @@ object SbtUglify extends AutoPlugin {
         appDir.value
       )
 
-      val inputFiles = optimizerMappings.map(o => appDir.value / o._2)
+      val ops = uglifyOps.value(optimizerMappings)
 
       val options = Seq(
         comments.value,
@@ -100,12 +113,13 @@ object SbtUglify extends AutoPlugin {
         sourceMap.value
       ).mkString("|")
 
-      implicit val opInputHasher = OpInputHasher[File](f => OpInputHash.hashString(f.getAbsolutePath + "|" + options))
-      val (outputFiles, _) = incremental.syncIncremental(streams.value.cacheDirectory / "run", inputFiles) {
-        modifiedFiles: Seq[File] =>
-          if (modifiedFiles.size > 0) {
+      implicit val opInputHasher = OpInputHasher[UglifyOpGrouping](io =>
+	OpInputHash.hashString((io._2 +: io._1.map(_._1.getAbsolutePath)).mkString("|") + "|" + options))
+      val (outputFiles, ()) = incremental.syncIncremental(streams.value.cacheDirectory / "run", ops) {
+        modifiedOps: Seq[UglifyOpGrouping] =>
+          if (modifiedOps.nonEmpty) {
 
-            streams.value.log.info(s"Optimizing ${modifiedFiles.size} JavaScript(s) with Uglify")
+            streams.value.log.info(s"Optimizing ${modifiedOps.size} JavaScript(s) with Uglify")
 
             val nodeModulePaths = (nodeModuleDirectories in Plugin).value.map(_.getPath)
             val uglifyjsShell = (webJarsNodeModulesDirectory in Plugin).value / "uglify-js" / "bin" / "uglifyjs"
@@ -153,45 +167,40 @@ object SbtUglify extends AutoPlugin {
               (timeoutPerSource in uglify).value
             )
 
-            modifiedFiles.foldLeft[(Map[File, OpResult], Unit)]((Map.empty, ())) {
-              case (results, inputFile) =>
-                val inputFileArgs = Seq(inputFile.getPath)
+            (modifiedOps.map { op =>
+	      val inputFiles = op._1.map(o => appDir.value / o._2)
+	      val inputFileArgs = inputFiles.map(_.getPath)
+	      val outputFile = buildDir.value / op._2
 
-                val inputFilePath = inputFile.getPath
-                val inputExtn = inputFilePath.drop(inputFilePath.lastIndexOf("."))
-                val outputFile = buildDir.value / (inputFile.getPath.drop(appDir.value.getPath.size).dropRight(inputExtn.size) + ".min" + inputExtn)
+	      val outputFileArgs = Seq("--output", outputFile.getPath)
 
-                val outputFileArgs = Seq("--output", outputFile.getPath)
+	      val (outputFileMap, sourceMapArgs) = if (sourceMap.value) {
+		val outputFileMap = file(outputFile.getPath + ".map")
+		(Some(outputFileMap), Seq(
+		  "--source-map", outputFileMap.getPath,
+		  "--source-map-url", outputFileMap.getName,
+		  "--prefix", "relative"
+		))
+	      } else {
+		(None, Nil)
+	      }
 
-                val outputFileMap = file(outputFile.getPath + ".map")
-                val sourceMapArgs = if (sourceMap.value) {
-                  Seq(
-                    "--source-map", outputFileMap.getPath,
-                    "--source-map-url", outputFileMap.getName,
-                    "--prefix", "relative"
-                  )
-                } else {
-                  Nil
-                }
+	      val args =
+		outputFileArgs ++
+		  inputFileArgs ++
+		  sourceMapArgs ++
+		  commonArgs
 
-                val args =
-                  outputFileArgs ++
-                    inputFileArgs ++
-                    sourceMapArgs ++
-                    commonArgs
-
-                val success = executeUglify(args).headOption.fold(true)(_ => false)
-                val result = if (success) {
-                  val outputFiles = if (sourceMap.value) Set(outputFile, outputFileMap) else Set(outputFile)
-                  (Map(inputFile -> OpSuccess(Set(inputFile), outputFiles)), ())
-                } else {
-                  (Map(inputFile -> OpFailure), ())
-                }
-                (results._1 ++ result._1, ())
-            }
+	      val success = executeUglify(args).headOption.fold(true)(_ => false)
+	      op -> (
+		if (success)
+		  OpSuccess(inputFiles.toSet, Set(outputFile) ++ outputFileMap)
+		else
+		  OpFailure)
+            }.toMap, ())
 
           } else {
-            (Map.empty, Nil)
+            (Map.empty, ())
           }
       }
 
