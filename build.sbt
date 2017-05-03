@@ -15,15 +15,10 @@ libraryDependencies ++= Seq(
 )
 
 resolvers ++= Seq(
-  "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
-  Resolver.url("sbt snapshot plugins", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns),
-  Resolver.sonatypeRepo("snapshots"),
-  "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/",
-  Resolver.mavenLocal
+  "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
 )
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-js-engine" % "1.1.4")
-addSbtPlugin("com.typesafe.sbt" % "sbt-web" % "1.4.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-js-engine" % "1.2.0")
 
 publishMavenStyle := false
 
