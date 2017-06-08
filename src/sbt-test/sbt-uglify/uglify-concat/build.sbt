@@ -12,7 +12,7 @@ val checkMapFileContents = taskKey[Unit]("check that map contents are correct")
 
 checkMapFileContents := {
   val contents = IO.read(file("target/web/stage/javascripts/concat.min.js.map"))
-  if (!contents.contains("""{"version":3,"sources":["a.js","b.js","x.js"],"names":["a","b","define","number","opposite","call","this"],"mappings":""") ||
+  if (!contents.contains("""{"version":3,"sources":["a.js","b.js","x.js"],"names":["a","b","define","call","this"],"mappings":""") ||
     !contents.contains(""","file":"concat.min.js"}""")) {
     sys.error(s"Unexpected contents: $contents")
   }
