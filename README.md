@@ -10,7 +10,7 @@ Usage
 To use this plugin, use the addSbtPlugin command within your project's `plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-uglify" % "1.0.3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-uglify" % "1.0.4")
 ```
 
 Your project's build file also needs to enable sbt-web plugins. For example, with build.sbt:
