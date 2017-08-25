@@ -1,6 +1,6 @@
 lazy val root = (project in file(".")).enablePlugins(SbtWeb)
 
-libraryDependencies += "org.webjars" % "bootstrap" % "3.0.2"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.3.7"
 
 pipelineStages := Seq(uglify)
 
