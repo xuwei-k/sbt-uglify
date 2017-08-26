@@ -7,4 +7,4 @@ libraryDependencies ++= Seq(
   "io.monix" %% "monix" % "2.3.0"
 )
 
-scriptedBufferLog := false
+//scriptedBufferLog := false
