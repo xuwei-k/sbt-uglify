@@ -44,17 +44,17 @@ If you wish to change how files are mapped from input to output, you can change 
 
 The default ops takes a source file and produces minified file and source map:
 ```scala
-UglifyKeys.uglifyOps := UglifyOps.singleFileWithSourceMapOut
+uglifyOps := UglifyOps.singleFileWithSourceMapOut
 ```
 
 This ops takes a source file and produces minified file only (no source map):
 ```scala
-UglifyKeys.uglifyOps := UglifyOps.singleFile
+uglifyOps := UglifyOps.singleFile
 ```
 
 This ops takes a source file and source map and produces minified file and combined source map. Your includeFilter must include source map files for this to work:
 ```scala
-UglifyKeys.uglifyOps := UglifyOps.singleFileWithSourceMapInAndOut
+uglifyOps := UglifyOps.singleFileWithSourceMapInAndOut
 ```
 
 ## Settings
@@ -64,16 +64,16 @@ options):
 
 Option                  | Description                                                                                   | Default
 ------------------------|-----------------------------------------------------------------------------------------------|----------
-comments                | Specifies comments handling.                                                                  | `None`
-compress                | Enables compression. Set true to compress.                                                    | `true`
-compressOptions         | A sequence of options for compression such as hoist_vars, if_return etc.                      | `Nil`
-define                  | Define globals.                                                                               | `None`
-enclose                 | Enclose in one big function.                                                                  | `false`
-includeSource           | Include the content of source files in the source map as the sourcesContent property.         | `false`
-mangle                  | Enables name mangling.                                                                        | `true`
-mangleOptions           | Options for mangling such as sort, topLevel etc.                                              | `Nil`
-preamble                | Any preamble to include at the start of the output.                                           | `None`
-reserved                | Reserved names to exclude from mangling.                                                      | `Nil`
+uglifyComments          | Specifies comments handling.                                                                  | `None`
+uglifyCompress          | Enables compression. Set true to compress.                                                    | `true`
+uglifyCompressOptions   | A sequence of options for compression such as hoist_vars, if_return etc.                      | `Nil`
+uglifyDefine            | Define globals.                                                                               | `None`
+uglifyEnclose           | Enclose in one big function.                                                                  | `false`
+uglifyIncludeSource     | Include the content of source files in the source map as the sourcesContent property.         | `false`
+uglifyMangle            | Enables name mangling.                                                                        | `true`
+uglifyMangleOptions     | Options for mangling such as sort, topLevel etc.                                              | `Nil`
+uglifyPreamble          | Any preamble to include at the start of the output.                                           | `None`
+uglifyReserved          | Reserved names to exclude from mangling.                                                      | `Nil`
 uglifyOps               | A function defining how to combine input files into output files.                             | `UglifyOps.singleFileWithSourceMapOut`
 
 The plugin is built on top of [JavaScript Engine](https://github.com/typesafehub/js-engine) which supports different JavaScript runtimes.
