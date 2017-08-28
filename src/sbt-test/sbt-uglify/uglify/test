@@ -1,6 +1,6 @@
 # Uglify files.
 
-> web-stage
+> webStage
 $ exists target/web/stage/javascripts/a.js
 $ exists target/web/stage/javascripts/a.min.js
 $ exists target/web/stage/javascripts/a.min.js.map

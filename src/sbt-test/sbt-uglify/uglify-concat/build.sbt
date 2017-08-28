@@ -1,10 +1,10 @@
 lazy val root = (project in file(".")).enablePlugins(SbtWeb)
 
-libraryDependencies += "org.webjars" % "bootstrap" % "3.0.2"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.3.7"
 
 pipelineStages := Seq(uglify)
 
-UglifyKeys.uglifyOps := { js =>
+uglifyOps := { js =>
   Seq(UglifyOps.UglifyOpGrouping(js.sortBy(_._2), "javascripts/concat.min.js", None, Some("javascripts/concat.min.js.map")))
 }
 
